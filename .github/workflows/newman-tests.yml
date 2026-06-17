@@ -1,0 +1,34 @@
+name: Run Postman Tests
+
+on:
+  push:
+    branches: [ main, master ]  # जब भी आप कोड पुश करेंगे, यह चलेगा
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  api-testing:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clone Code
+      uses: actions/checkout@v4
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Newman & Reporter
+      run: npm install -g newman newman-reporter-htmlextra
+
+    - name: Execute Newman
+      run: |
+        newman run "API Chaining Login.postman_collection.json" -e "Revision Environment.postman_environment.json" -r cli,htmlextra
+
+    - name: Upload HTML Report
+      if: always()  # टेस्ट फेल होने पर भी रिपोर्ट अपलोड होगी
+      uses: actions/upload-artifact@v4
+      with:
+        name: API-Test-Report
+        path: newman/

@@ -1,0 +1,345 @@
+{
+  "info": {
+    "_postman_id": "ca2da2a9-37b8-4922-8dce-4b81b38a90f6",
+    "name": "API Chaining Login",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "33334349",
+    "_collection_link": "https://go.postman.co/collection/33334349-ca2da2a9-37b8-4922-8dce-4b81b38a90f6?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Login {Extract Token}",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Login successful - Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Token is generated\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData).to.have.property(\"token\");\r",
+              "    pm.expect(jsonData.token).to.not.be.empty;\r",
+              "});\r",
+              "\r",
+              "// Save token to environment variable\r",
+              "var jsonData = pm.response.json();\r",
+              "if (jsonData.token) {\r",
+              "    pm.environment.set(\"token\", jsonData.token);\r",
+              "    console.log(\"Token saved to environment: \" + jsonData.token);}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set(\"runStartTime\", new Date().toISOString());\r",
+              "console.log(\"Run started at:\", pm.environment.get(\"runStartTime\"));"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "pro_15ff032585a61965c4ff87b2925703a14c0bac9c674343d8f302e6ff8341c4ba",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"eve.holt@reqres.in\",\r\n    \"password\": \"cityslicka\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{reqURL}}/api/login",
+          "host": [
+            "{{reqURL}}"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        },
+        "description": "create login APi and extract token"
+      },
+      "response": []
+    },
+    {
+      "name": "Create User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"User created successfully - Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Response body contains 'id' field\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"id\");",
+              "});",
+              "",
+              "pm.test(\"Response body contains 'createdAt' field\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"createdAt\");",
+              "});",
+              "",
+              "// Save user ID to environment variable",
+              "var jsonData = pm.response.json();",
+              "if (jsonData && jsonData.id) {",
+              "    pm.environment.set(\"userId\", jsonData.id);",
+              "    console.log(\"userId saved to environment:\", jsonData.id);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "pro_15ff032585a61965c4ff87b2925703a14c0bac9c674343d8f302e6ff8341c4ba",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"name\": \"manendra\",\r\n    \"job\": \"engineer\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{reqURL}}/api/users",
+          "host": [
+            "{{reqURL}}"
+          ],
+          "path": [
+            "api",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Request",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time is less than 2000ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});",
+              "",
+              "pm.test(\"Response body contains 'name' field matching request\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    var requestBody = JSON.parse(pm.request.body.raw);",
+              "    pm.expect(jsonData).to.have.property(\"name\");",
+              "    pm.expect(jsonData.name).to.eql(requestBody.name);",
+              "});",
+              "",
+              "pm.test(\"Response body contains 'job' field matching request\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    var requestBody = JSON.parse(pm.request.body.raw);",
+              "    pm.expect(jsonData).to.have.property(\"job\");",
+              "    pm.expect(jsonData.job).to.eql(requestBody.job);",
+              "});",
+              "",
+              "pm.test(\"Response body contains 'updatedAt' field\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"updatedAt\");",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "pro_15ff032585a61965c4ff87b2925703a14c0bac9c674343d8f302e6ff8341c4ba",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"name\": \"manendra-2\",\r\n    \"job\": \"engineer hai\"\r\n}"
+        },
+        "url": {
+          "raw": "{{reqURL}}/api/users/{{userId}}",
+          "host": [
+            "{{reqURL}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "{{userId}}"
+          ]
+        },
+        "description": "Update complete data"
+      },
+      "response": []
+    },
+    {
+      "name": "Delete User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 204\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});",
+              "",
+              "pm.test(\"Response time is less than 1000ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+              "});",
+              "",
+              "pm.test(\"Response body is empty\", function () {",
+              "    pm.expect(pm.response.text()).to.be.empty;",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set(\"runStartTime\", new Date().toISOString());\r",
+              "console.log(\"Run started at:\", pm.environment.get(\"runStartTime\"));"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "pro_15ff032585a61965c4ff87b2925703a14c0bac9c674343d8f302e6ff8341c4ba",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "{{reqURL}}/api/users/{{userId}}",
+          "host": [
+            "{{reqURL}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "{{userId}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}
